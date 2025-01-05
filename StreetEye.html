@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreetEye</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            
+
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        nav {
+            background-color: #444;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        section {
+            padding: 20px;
+            text-align: center;
+            
+        }
+        footer {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        #harita {
+            height: 400px;
+            width: 100%;
+        }
+        
+
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+
+
+
+</head>
+<body>
+    <header>
+        <h1>StreetEye</h1>
+    </header>
+    <div align="center">
+        <input type="file" id="imageInput" accept="image/*" onchange="previewImage(event)">
+        <button type="button" onclick="predict()">Predict</button>
+    </div>
+    <div align="center" id="imagePreview"></div>
+    <div align="center" id="outputContainer"></div>
+    
+    <script type="text/javascript">
+        const URL = "https://teachablemachine.withgoogle.com/models/6tqlaRoT5/";
+    
+        let model, maxPredictions;
+    
+        async function init() {
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+    
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+        }
+    
+        async function previewImage(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function() {
+                const imageElement = document.createElement("img");
+                imageElement.src = reader.result;
+                imageElement.width = 400; // Önizleme boyutu ayarla
+                document.getElementById("imagePreview").innerHTML = ""; // Önceki önizlemeyi temizle
+                document.getElementById("imagePreview").appendChild(imageElement); // Yeni önizlemeyi ekle
+            };
+            reader.readAsDataURL(file);
+        }
+    
+        async function predict() {
+            const fileInput = document.getElementById("imageInput");
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                alert("Lütfen bir resim seçin.");
+                return;
+            }
+    
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = async function() {
+                const imageElement = document.createElement("img");
+                imageElement.onload = async function() {
+                    const prediction = await model.predict(imageElement);
+                    showPredictionResults(prediction);
+                };
+                imageElement.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    
+        function showPredictionResults(prediction) {
+            const outputContainer = document.getElementById("outputContainer");
+            outputContainer.innerHTML = "";
+            for (let i = 0; i < maxPredictions; i++) {
+                const classPrediction =
+                    prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+                const predictionElement = document.createElement("div");
+                predictionElement.innerText = classPrediction;
+                outputContainer.appendChild(predictionElement);
+            }
+        }
+        function showPredictionResults(prediction) {
+    const outputContainer = document.getElementById("outputContainer");
+    outputContainer.innerHTML = "";
+    for (let i = 0; i < maxPredictions; i++) {
+        const classPrediction =
+            prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+        const predictionElement = document.createElement("div");
+        predictionElement.innerText = classPrediction;
+        outputContainer.appendChild(predictionElement);
+    }
+}
+
+    
+        init();
+    </script>
+   
+    
+    
+    <section>
+        
+        
+
+
+        <h2>Hoş Geldiniz!</h2>
+        <p>Aşağıdaki harita sayesinde asfaltın bozuk olduğu yerleri öğrenebilirsiniz</p>
+        
+        <iframe src="https://www.google.com/maps/d/u/0/embed?mid=1AuDtiZ4u0UCVY18LvpwGg8oDDx_7uNw&ehbc=2E312F&noprof=1" width="640" height="480"></iframe>
+        <div id="harita"></div>
+
+   <script>
+       // Google Haritalar API'yi kullanarak haritayı oluşturuyoruz
+       function initMap() {
+           // Harita için merkez konumunu belirleyin
+           var myLatLng = {lat: 40.7128, lng: -74.0060};
+
+           // Harita oluştur
+           var map = new google.maps.Map(document.getElementById('harita'), {
+               zoom: 12,
+               center: myLatLng
+           });
+
+           // İşaretçi ekleyin
+           var marker = new google.maps.Marker({
+               position: myLatLng,
+               map: map,
+               title: 'İşaretçi Başlık'
+           });
+       }
+   </script>
+   <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script> 
+    </header>
+    </section>
+   
+</body>
+</html>
